@@ -4,8 +4,13 @@
   "version": "1.0",
   "description": "A content filtering extension that blocks inappropriate content and redirects to a positive page",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "SafeSurf - Your Digital Wellbeing Companion"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -15,13 +20,8 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["redirect.html", "style.css"],
+      "resources": ["redirect.html", "redirect.js", "style.css"],
       "matches": ["<all_urls>"]
     }
-  ],
-  "icons": {
-    // "16": "icon16.png",
-    // "48": "icon48.png",
-    // "128": "icon128.png"
-  }
+  ]
 } 
