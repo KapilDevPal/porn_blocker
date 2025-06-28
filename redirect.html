@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSurf - Stay Focused</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="icon">🛡️</div>
+            <h1>SafeSurf Protection Active</h1>
+            <p class="subtitle">You're being protected from inappropriate content</p>
+            
+            <div class="message">
+                <h2>Stay Focused, Stay Productive</h2>
+                <p>Your time is valuable. Instead of visiting that site, consider doing something that will benefit your future:</p>
+                
+                <div class="suggestions">
+                    <div class="suggestion">
+                        <span class="emoji">📚</span>
+                        <span>Read a book or article</span>
+                    </div>
+                    <div class="suggestion">
+                        <span class="emoji">💪</span>
+                        <span>Exercise or workout</span>
+                    </div>
+                    <div class="suggestion">
+                        <span class="emoji">🎯</span>
+                        <span>Work on your goals</span>
+                    </div>
+                    <div class="suggestion">
+                        <span class="emoji">🧘</span>
+                        <span>Practice mindfulness</span>
+                    </div>
+                    <div class="suggestion">
+                        <span class="emoji">👥</span>
+                        <span>Connect with friends/family</span>
+                    </div>
+                    <div class="suggestion">
+                        <span class="emoji">🎨</span>
+                        <span>Learn a new skill</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="motivation">
+                <blockquote>
+                    "The only way to do great work is to love what you do."<br>
+                    <cite>- Steve Jobs</cite>
+                </blockquote>
+            </div>
+            
+            <div class="actions">
+                <button onclick="goBack()" class="btn btn-secondary">Go Back</button>
+                <button onclick="goToGoogle()" class="btn btn-primary">Search Something Productive</button>
+            </div>
+            
+            <div class="footer">
+                <p>Powered by SafeSurf - Your Digital Wellbeing Companion</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+        
+        function goToGoogle() {
+            window.location.href = 'https://www.google.com';
+        }
+        
+        // Prevent going back to the blocked page
+        window.addEventListener('load', function() {
+            if (window.history.length > 1) {
+                // Clear the blocked page from history
+                window.history.replaceState(null, null, window.location.href);
+            }
+        });
+    </script>
+</body>
+</html> 
