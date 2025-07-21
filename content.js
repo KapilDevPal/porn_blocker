@@ -147,7 +147,7 @@ function checkURL(url) {
         return false;
     }
     
-    const lowerURL = url.toLowerCase();
+  const lowerURL = url.toLowerCase();
     console.log('Checking URL:', url);
     console.log('Blocked keywords:', blockedKeywords);
     console.log('URL to check:', lowerURL);
@@ -201,11 +201,11 @@ function checkPageContent() {
     
     const bodyText = document.body ? document.body.innerText : '';
     const titleText = document.title || '';
-    const metaDescription = document.querySelector('meta[name="description"]');
+  const metaDescription = document.querySelector('meta[name="description"]');
     const metaText = metaDescription ? metaDescription.getAttribute('content') || '' : '';
-    
-    const allText = bodyText + ' ' + titleText + ' ' + metaText;
-    
+  
+  const allText = bodyText + ' ' + titleText + ' ' + metaText;
+  
     console.log('Content check - Title:', titleText);
     console.log('Content check - Meta description:', metaText);
     console.log('Content check - Body text length:', bodyText.length);
@@ -243,8 +243,8 @@ function redirectToSafePage() {
         return;
     }
     console.log('Redirecting to safe page');
-    const redirectURL = chrome.runtime.getURL('redirect.html');
-    window.location.href = redirectURL;
+  const redirectURL = chrome.runtime.getURL('redirect.html');
+  window.location.href = redirectURL;
 }
 
 // Main function to perform checks
@@ -259,29 +259,29 @@ function performSafetyCheck() {
         return;
     }
     
-    // Check current URL
-    if (checkURL(window.location.href)) {
+  // Check current URL
+  if (checkURL(window.location.href)) {
         console.log('URL blocked, redirecting...');
-        redirectToSafePage();
-        return;
-    }
-    
-    // Check page content (only if DOM is ready)
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+    redirectToSafePage();
+    return;
+  }
+  
+  // Check page content (only if DOM is ready)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, checking content...');
             if (protectionEnabled && checkPageContent()) {
                 console.log('Content blocked, redirecting...');
-                redirectToSafePage();
-            }
-        });
-    } else {
+        redirectToSafePage();
+      }
+    });
+  } else {
         console.log('DOM already loaded, checking content...');
         if (protectionEnabled && checkPageContent()) {
             console.log('Content blocked, redirecting...');
-            redirectToSafePage();
-        }
+      redirectToSafePage();
     }
+  }
 }
 
 // Listen for messages from popup
@@ -293,7 +293,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         console.log('Updated keywords:', blockedKeywords);
         // Re-check current page with new keywords only if protection is enabled
         if (protectionEnabled) {
-            performSafetyCheck();
+performSafetyCheck();
         }
     } else if (request.action === 'updateProtection') {
         protectionEnabled = request.enabled;
@@ -317,17 +317,17 @@ loadSettings();
 // Also check on URL changes (for SPAs)
 let currentURL = window.location.href;
 const observer = new MutationObserver(() => {
-    if (window.location.href !== currentURL) {
-        currentURL = window.location.href;
+  if (window.location.href !== currentURL) {
+    currentURL = window.location.href;
         console.log('URL changed, re-checking:', currentURL);
         
         // Only perform safety check if protection is enabled
         if (protectionEnabled) {
-            performSafetyCheck();
+    performSafetyCheck();
         } else {
             console.log('Protection disabled, skipping URL change check');
         }
-    }
+  }
 });
 
 // Start observing URL changes

@@ -8,7 +8,6 @@ const defaultKeywords = [
 // DOM elements
 const toggleProtection = document.getElementById('toggleProtection');
 const status = document.getElementById('status');
-const incognitoStatus = document.getElementById('incognitoStatus');
 const newKeywordInput = document.getElementById('newKeyword');
 const addKeywordBtn = document.getElementById('addKeyword');
 const keywordsList = document.getElementById('keywordsList');
@@ -17,7 +16,7 @@ const keywordsList = document.getElementById('keywordsList');
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
     loadKeywords();
-    checkIncognitoStatus();
+    // No incognito status check
     
     // Event listeners
     toggleProtection.addEventListener('change', toggleProtectionHandler);
@@ -85,28 +84,6 @@ function updateStatusDisplay(isEnabled) {
     } else {
         status.className = 'status';
         status.querySelector('span').textContent = 'Protection is DISABLED';
-    }
-}
-
-// Check incognito blocking status
-function checkIncognitoStatus() {
-    try {
-        chrome.runtime.sendMessage({ action: 'checkIncognitoStatus' }, function(response) {
-            if (chrome.runtime.lastError) {
-                // Handle connection error
-                incognitoStatus.querySelector('span').textContent = '🔒 Incognito Mode BLOCKED';
-                return;
-            }
-            
-            if (response && response.incognitoBlocked) {
-                incognitoStatus.querySelector('span').textContent = '🔒 Incognito Mode BLOCKED';
-            } else {
-                incognitoStatus.querySelector('span').textContent = '⚠️ Incognito Mode NOT BLOCKED';
-            }
-        });
-    } catch (error) {
-        console.log('Error in checkIncognitoStatus:', error);
-        incognitoStatus.querySelector('span').textContent = '🔒 Incognito Mode BLOCKED';
     }
 }
 
