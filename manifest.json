@@ -5,11 +5,24 @@
   "description": "A content filtering extension that blocks inappropriate content and redirects to a positive page",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs",
+    "windows",
+    "notifications"
   ],
+  "incognito": "split",
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "SafeSurf - Your Digital Wellbeing Companion"
+    "default_title": "SafeSurf - Your Digital Wellbeing Companion",
+    "default_icon": "icon.svg"
+  },
+  "icons": {
+    "16": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
   },
   "content_scripts": [
     {

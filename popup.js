@@ -1,4 +1,4 @@
-// Default blocked keywords
+// Default blocked keywords (protected from removal)
 const defaultKeywords = [
     "porn", "sex", "xxx", "nsfw", "nude", "hentai", "adult", 
     "hot girls", "sex video", "pornography", "explicit", 
@@ -16,6 +16,7 @@ const keywordsList = document.getElementById('keywordsList');
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
     loadKeywords();
+    // No incognito status check
     
     // Event listeners
     toggleProtection.addEventListener('change', toggleProtectionHandler);
@@ -39,18 +40,39 @@ function loadSettings() {
 // Toggle protection on/off
 function toggleProtectionHandler() {
     const isEnabled = toggleProtection.checked;
+    console.log('Toggling protection to:', isEnabled);
+    
     chrome.storage.sync.set({ protectionEnabled: isEnabled }, function() {
         updateStatusDisplay(isEnabled);
         
-        // Notify content script about the change
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: 'updateProtection',
-                    enabled: isEnabled
+        // Notify all content scripts about the change
+        try {
+            chrome.tabs.query({}, function(tabs) {
+                if (chrome.runtime.lastError) {
+                    console.log('Error querying tabs:', chrome.runtime.lastError);
+                    return;
+                }
+                
+                tabs.forEach(tab => {
+                    try {
+                        chrome.tabs.sendMessage(tab.id, {
+                            action: 'updateProtection',
+                            enabled: isEnabled
+                        }).catch(() => {
+                            // Ignore connection errors for tabs without content scripts
+                        });
+                    } catch (e) {
+                        // Ignore errors for tabs that don't have content scripts
+                    }
                 });
-            }
-        });
+            });
+        } catch (error) {
+            console.log('Error in toggleProtectionHandler:', error);
+        }
+        
+        // Show feedback to user
+        const message = isEnabled ? 'Protection enabled!' : 'Protection disabled!';
+        showNotification(message);
     });
 }
 
@@ -65,6 +87,48 @@ function updateStatusDisplay(isEnabled) {
     }
 }
 
+// Show notification
+function showNotification(message) {
+    // Create a temporary notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(76, 175, 80, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 1000;
+        animation: fadeInOut 2s ease-in-out;
+    `;
+    notification.textContent = message;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+        if (document.head.contains(style)) {
+            document.head.removeChild(style);
+        }
+    }, 2000);
+}
+
 // Load keywords from storage
 function loadKeywords() {
     chrome.storage.sync.get(['blockedKeywords'], function(result) {
@@ -73,17 +137,35 @@ function loadKeywords() {
     });
 }
 
-// Display keywords in the list
+// Display keywords in the list (only custom keywords)
 function displayKeywords(keywords) {
     keywordsList.innerHTML = '';
     
-    keywords.forEach(keyword => {
+    // Filter out default keywords - only show custom ones
+    const customKeywords = keywords.filter(keyword => !defaultKeywords.includes(keyword));
+    
+    if (customKeywords.length === 0) {
+        // Show a message when no custom keywords exist
+        const noKeywordsMsg = document.createElement('div');
+        noKeywordsMsg.style.cssText = `
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+            font-style: italic;
+        `;
+        noKeywordsMsg.textContent = 'No custom keywords added yet';
+        keywordsList.appendChild(noKeywordsMsg);
+        return;
+    }
+    
+    customKeywords.forEach(keyword => {
         const keywordItem = document.createElement('div');
         keywordItem.className = 'keyword-item';
         
         const keywordSpan = document.createElement('span');
         keywordSpan.textContent = keyword;
         
+        // Show remove button for custom keywords
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
         removeBtn.addEventListener('click', () => removeKeyword(keyword));
@@ -99,7 +181,7 @@ function addKeyword() {
     const keyword = newKeywordInput.value.trim().toLowerCase();
     
     if (!keyword) {
-        alert('Please enter a keyword');
+        showNotification('Please enter a keyword');
         return;
     }
     
@@ -107,7 +189,7 @@ function addKeyword() {
         const keywords = result.blockedKeywords || defaultKeywords;
         
         if (keywords.includes(keyword)) {
-            alert('This keyword is already in the list');
+            showNotification('This keyword is already in the list');
             return;
         }
         
@@ -117,21 +199,44 @@ function addKeyword() {
             displayKeywords(keywords);
             newKeywordInput.value = '';
             
-            // Notify content script about the change
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                if (tabs[0]) {
-                    chrome.tabs.sendMessage(tabs[0].id, {
-                        action: 'updateKeywords',
-                        keywords: keywords
+            // Notify all content scripts about the change
+            try {
+                chrome.tabs.query({}, function(tabs) {
+                    if (chrome.runtime.lastError) {
+                        console.log('Error querying tabs:', chrome.runtime.lastError);
+                        return;
+                    }
+                    
+                    tabs.forEach(tab => {
+                        try {
+                            chrome.tabs.sendMessage(tab.id, {
+                                action: 'updateKeywords',
+                                keywords: keywords
+                            }).catch(() => {
+                                // Ignore connection errors for tabs without content scripts
+                            });
+                        } catch (e) {
+                            // Ignore errors for tabs that don't have content scripts
+                        }
                     });
-                }
-            });
+                });
+            } catch (error) {
+                console.log('Error in addKeyword:', error);
+            }
+            
+            showNotification('Keyword added successfully!');
         });
     });
 }
 
 // Remove keyword
 function removeKeyword(keywordToRemove) {
+    // Prevent removal of default keywords
+    if (defaultKeywords.includes(keywordToRemove)) {
+        showNotification('Default keywords cannot be removed');
+        return;
+    }
+    
     chrome.storage.sync.get(['blockedKeywords'], function(result) {
         const keywords = result.blockedKeywords || defaultKeywords;
         const updatedKeywords = keywords.filter(keyword => keyword !== keywordToRemove);
@@ -139,15 +244,32 @@ function removeKeyword(keywordToRemove) {
         chrome.storage.sync.set({ blockedKeywords: updatedKeywords }, function() {
             displayKeywords(updatedKeywords);
             
-            // Notify content script about the change
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                if (tabs[0]) {
-                    chrome.tabs.sendMessage(tabs[0].id, {
-                        action: 'updateKeywords',
-                        keywords: updatedKeywords
+            // Notify all content scripts about the change
+            try {
+                chrome.tabs.query({}, function(tabs) {
+                    if (chrome.runtime.lastError) {
+                        console.log('Error querying tabs:', chrome.runtime.lastError);
+                        return;
+                    }
+                    
+                    tabs.forEach(tab => {
+                        try {
+                            chrome.tabs.sendMessage(tab.id, {
+                                action: 'updateKeywords',
+                                keywords: updatedKeywords
+                            }).catch(() => {
+                                // Ignore connection errors for tabs without content scripts
+                            });
+                        } catch (e) {
+                            // Ignore errors for tabs that don't have content scripts
+                        }
                     });
-                }
-            });
+                });
+            } catch (error) {
+                console.log('Error in removeKeyword:', error);
+            }
+            
+            showNotification('Keyword removed successfully!');
         });
     });
 } 
