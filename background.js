@@ -10,11 +10,7 @@ function redirectIncognitoTab(tab) {
         chrome.tabs.update(tab.id, { url: redirectURL });
         
         // Show a notification without icon to avoid download error
-        chrome.notifications.create({
-            type: 'basic',
-            title: 'SafeSurf Protection',
-            message: 'Incognito mode is blocked for your digital wellbeing.'
-        });
+        showNotification('SafeSurf Protection', 'Incognito mode is blocked for your digital wellbeing.');
     } catch (error) {
         console.log('Error redirecting incognito tab:', error);
     }
@@ -37,11 +33,7 @@ function redirectIncognitoWindow(window) {
         });
         
         // Show a notification without icon to avoid download error
-        chrome.notifications.create({
-            type: 'basic',
-            title: 'SafeSurf Protection',
-            message: 'Incognito mode is blocked for your digital wellbeing.'
-        });
+        showNotification('SafeSurf Protection', 'Incognito mode is blocked for your digital wellbeing.');
     } catch (error) {
         console.log('Error redirecting incognito window:', error);
     }
@@ -54,11 +46,7 @@ function closeIncognitoWindow(windowId) {
         chrome.windows.remove(windowId);
         
         // Show a notification without icon to avoid download error
-        chrome.notifications.create({
-            type: 'basic',
-            title: 'SafeSurf Protection',
-            message: 'Incognito window closed for your protection.'
-        });
+        showNotification('SafeSurf Protection', 'Incognito window closed for your protection.');
     } catch (error) {
         console.log('Error closing incognito window:', error);
     }
@@ -141,11 +129,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         console.log('SafeSurf extension installed');
         
         // Show welcome notification without icon to avoid download error
-        chrome.notifications.create({
-            type: 'basic',
-            title: 'SafeSurf Installed',
-            message: 'Your digital wellbeing companion is now active! Incognito mode is blocked.'
-        });
+        showNotification('SafeSurf Installed', 'Your digital wellbeing companion is now active! Incognito mode is blocked.');
     }
     
     // Check for any existing incognito windows/tabs
@@ -252,3 +236,17 @@ setInterval(function() {
 
 // Also check when the service worker starts
 checkExistingIncognito(); 
+
+function showNotification(title, message) {
+    chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icon.svg'),
+        title: title,
+        message: message
+    }, () => {
+        if (chrome.runtime.lastError) {
+            // Ignore notification errors (especially in incognito)
+            // console.log('Notification error:', chrome.runtime.lastError);
+        }
+    });
+} 
